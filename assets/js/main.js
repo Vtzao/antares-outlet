@@ -10,7 +10,7 @@
   "use strict";
 
   /**
-   * Apply .scrolled class to the body as the page is scrolled down
+   * 1. Toggle Class Scrolled (Muda o cabeçalho ao rolar)
    */
   function toggleScrolled() {
     const selectBody = document.querySelector('body');
@@ -23,7 +23,7 @@
   window.addEventListener('load', toggleScrolled);
 
   /**
-   * Mobile nav toggle
+   * 2. Mobile Navigation (Menu Celular)
    */
   const mobileNavToggleBtn = document.querySelector('.mobile-nav-toggle');
 
@@ -32,10 +32,13 @@
     mobileNavToggleBtn.classList.toggle('bi-list');
     mobileNavToggleBtn.classList.toggle('bi-x');
   }
-  mobileNavToggleBtn.addEventListener('click', mobileNavToogle);
+  
+  if (mobileNavToggleBtn) {
+    mobileNavToggleBtn.addEventListener('click', mobileNavToogle);
+  }
 
   /**
-   * Hide mobile nav on same-page/hash links
+   * 3. Fecha o menu mobile ao clicar em um link
    */
   document.querySelectorAll('#navmenu a').forEach(navmenu => {
     navmenu.addEventListener('click', () => {
@@ -43,11 +46,10 @@
         mobileNavToogle();
       }
     });
-
   });
 
   /**
-   * Toggle mobile nav dropdowns
+   * 4. Dropdowns do Menu
    */
   document.querySelectorAll('.navmenu .toggle-dropdown').forEach(navmenu => {
     navmenu.addEventListener('click', function(e) {
@@ -59,7 +61,7 @@
   });
 
   /**
-   * Preloader
+   * 5. Preloader
    */
   const preloader = document.querySelector('#preloader');
   if (preloader) {
@@ -69,7 +71,7 @@
   }
 
   /**
-   * Scroll top button
+   * 6. Scroll Top Button
    */
   let scrollTop = document.querySelector('.scroll-top');
 
@@ -78,19 +80,22 @@
       window.scrollY > 100 ? scrollTop.classList.add('active') : scrollTop.classList.remove('active');
     }
   }
-  scrollTop.addEventListener('click', (e) => {
-    e.preventDefault();
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
+  
+  if (scrollTop) {
+    scrollTop.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
     });
-  });
+  }
 
   window.addEventListener('load', toggleScrollTop);
   document.addEventListener('scroll', toggleScrollTop);
 
   /**
-   * Animation on scroll function and init
+   * 7. Inicializa AOS (Animações de entrada)
    */
   function aosInit() {
     AOS.init({
@@ -103,19 +108,16 @@
   window.addEventListener('load', aosInit);
 
   /**
-   * Initiate glightbox
+   * 8. Inicializa GLightbox e PureCounter
    */
   const glightbox = GLightbox({
     selector: '.glightbox'
   });
 
-  /**
-   * Initiate Pure Counter
-   */
   new PureCounter();
 
   /**
-   * Init isotope layout and filters
+   * 9. Isotope Layout (Filtros)
    */
   document.querySelectorAll('.isotope-layout').forEach(function(isotopeItem) {
     let layout = isotopeItem.getAttribute('data-layout') ?? 'masonry';
@@ -148,7 +150,7 @@
   });
 
   /**
-   * Init swiper sliders
+   * 10. Swiper Sliders
    */
   function initSwiper() {
     document.querySelectorAll(".init-swiper").forEach(function(swiperElement) {
@@ -163,11 +165,10 @@
       }
     });
   }
-
   window.addEventListener("load", initSwiper);
 
   /**
-   * Frequently Asked Questions Toggle
+   * 11. FAQ Toggle
    */
   document.querySelectorAll('.faq-item h3, .faq-item .faq-toggle').forEach((faqItem) => {
     faqItem.addEventListener('click', () => {
@@ -176,25 +177,7 @@
   });
 
   /**
-   * Correct scrolling position upon page load for URLs containing hash links.
-   */
-  window.addEventListener('load', function(e) {
-    if (window.location.hash) {
-      if (document.querySelector(window.location.hash)) {
-        setTimeout(() => {
-          let section = document.querySelector(window.location.hash);
-          let scrollMarginTop = getComputedStyle(section).scrollMarginTop;
-          window.scrollTo({
-            top: section.offsetTop - parseInt(scrollMarginTop),
-            behavior: 'smooth'
-          });
-        }, 100);
-      }
-    }
-  });
-
-  /**
-   * Navmenu Scrollspy
+   * 12. Navmenu Scrollspy (Destaca o link ativo no menu enquanto rola)
    */
   let navmenulinks = document.querySelectorAll('.navmenu a');
 
@@ -203,7 +186,10 @@
       if (!navmenulink.hash) return;
       let section = document.querySelector(navmenulink.hash);
       if (!section) return;
+      
+      // Ajuste de posição para considerar o header fixo
       let position = window.scrollY + 200;
+      
       if (position >= section.offsetTop && position <= (section.offsetTop + section.offsetHeight)) {
         document.querySelectorAll('.navmenu a.active').forEach(link => link.classList.remove('active'));
         navmenulink.classList.add('active');
