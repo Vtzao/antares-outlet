@@ -71,62 +71,35 @@
   window.addEventListener('load', toggleScrollTop);
   document.addEventListener('scroll', toggleScrollTop, onScrollOptions);
 
-  function aosInit() {
-    if (typeof AOS === 'undefined') return;
+  let swiperAssetsPromise;
 
-    AOS.init({
-      duration: 600,
-      easing: 'ease-in-out',
-      once: true,
-      mirror: false
+  function loadSwiperAssets() {
+    if (swiperAssetsPromise) return swiperAssetsPromise;
+
+    swiperAssetsPromise = new Promise((resolve, reject) => {
+      if (!document.querySelector('link[data-swiper-css]')) {
+        const swiperCss = document.createElement('link');
+        swiperCss.rel = 'stylesheet';
+        swiperCss.href = 'https://cdn.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.css';
+        swiperCss.setAttribute('data-swiper-css', 'true');
+        document.head.appendChild(swiperCss);
+      }
+
+      if (typeof Swiper !== 'undefined') {
+        resolve();
+        return;
+      }
+
+      const swiperScript = document.createElement('script');
+      swiperScript.src = 'https://cdn.jsdelivr.net/npm/swiper@11.2.10/swiper-bundle.min.js';
+      swiperScript.async = true;
+      swiperScript.onload = () => resolve();
+      swiperScript.onerror = () => reject(new Error('Erro ao carregar Swiper'));
+      document.body.appendChild(swiperScript);
     });
+
+    return swiperAssetsPromise;
   }
-  window.addEventListener('load', aosInit);
-
-  if (typeof GLightbox !== 'undefined' && document.querySelector('.glightbox')) {
-    GLightbox({
-      selector: '.glightbox'
-    });
-  }
-
-  if (typeof PureCounter !== 'undefined' && document.querySelector('[data-purecounter-start]')) {
-    new PureCounter();
-  }
-
-  document.querySelectorAll('.isotope-layout').forEach(function(isotopeItem) {
-    if (typeof Isotope === 'undefined' || typeof imagesLoaded === 'undefined') return;
-
-    const layout = isotopeItem.getAttribute('data-layout') ?? 'masonry';
-    const filter = isotopeItem.getAttribute('data-default-filter') ?? '*';
-    const sort = isotopeItem.getAttribute('data-sort') ?? 'original-order';
-    const container = isotopeItem.querySelector('.isotope-container');
-    if (!container) return;
-
-    let initIsotope;
-    imagesLoaded(container, function() {
-      initIsotope = new Isotope(container, {
-        itemSelector: '.isotope-item',
-        layoutMode: layout,
-        filter: filter,
-        sortBy: sort
-      });
-    });
-
-    isotopeItem.querySelectorAll('.isotope-filters li').forEach(function(filters) {
-      filters.addEventListener('click', function() {
-        const activeFilter = isotopeItem.querySelector('.isotope-filters .filter-active');
-        if (activeFilter) activeFilter.classList.remove('filter-active');
-
-        this.classList.add('filter-active');
-        if (initIsotope) {
-          initIsotope.arrange({
-            filter: this.getAttribute('data-filter')
-          });
-        }
-        aosInit();
-      }, false);
-    });
-  });
 
   function initSwiper() {
     if (typeof Swiper === 'undefined') return;
@@ -144,7 +117,37 @@
       }
     });
   }
-  window.addEventListener('load', initSwiper);
+
+  function initTestimonialsWhenVisible() {
+    const testimonialsSwiper = document.querySelector('#testimonials .init-swiper');
+    if (!testimonialsSwiper) return;
+
+    let initialized = false;
+
+    const startSwiper = () => {
+      if (initialized) return;
+      initialized = true;
+      loadSwiperAssets().then(initSwiper).catch(() => {
+        initialized = false;
+      });
+    };
+
+    if ('IntersectionObserver' in window) {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          observer.disconnect();
+          startSwiper();
+        }
+      }, {
+        rootMargin: '200px 0px'
+      });
+
+      observer.observe(testimonialsSwiper);
+    } else {
+      window.addEventListener('load', startSwiper);
+    }
+  }
+  initTestimonialsWhenVisible();
 
   document.querySelectorAll('.faq-item h3, .faq-item .faq-toggle').forEach((faqItem) => {
     faqItem.addEventListener('click', () => {
