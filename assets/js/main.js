@@ -9,9 +9,8 @@
 (function() {
   "use strict";
 
-  /**
-   * 1. Toggle Class Scrolled (Muda o cabeçalho ao rolar)
-   */
+  const onScrollOptions = { passive: true };
+
   function toggleScrolled() {
     const selectBody = document.querySelector('body');
     const selectHeader = document.querySelector('#header');
@@ -19,12 +18,9 @@
     window.scrollY > 100 ? selectBody.classList.add('scrolled') : selectBody.classList.remove('scrolled');
   }
 
-  document.addEventListener('scroll', toggleScrolled);
+  document.addEventListener('scroll', toggleScrolled, onScrollOptions);
   window.addEventListener('load', toggleScrolled);
 
-  /**
-   * 2. Mobile Navigation (Menu Celular)
-   */
   const mobileNavToggleBtn = document.querySelector('.mobile-nav-toggle');
 
   function mobileNavToogle() {
@@ -32,14 +28,11 @@
     mobileNavToggleBtn.classList.toggle('bi-list');
     mobileNavToggleBtn.classList.toggle('bi-x');
   }
-  
+
   if (mobileNavToggleBtn) {
     mobileNavToggleBtn.addEventListener('click', mobileNavToogle);
   }
 
-  /**
-   * 3. Fecha o menu mobile ao clicar em um link
-   */
   document.querySelectorAll('#navmenu a').forEach(navmenu => {
     navmenu.addEventListener('click', () => {
       if (document.querySelector('.mobile-nav-active')) {
@@ -48,9 +41,6 @@
     });
   });
 
-  /**
-   * 4. Dropdowns do Menu
-   */
   document.querySelectorAll('.navmenu .toggle-dropdown').forEach(navmenu => {
     navmenu.addEventListener('click', function(e) {
       e.preventDefault();
@@ -60,27 +50,14 @@
     });
   });
 
-  /**
-   * 5. Preloader
-   */
-  const preloader = document.querySelector('#preloader');
-  if (preloader) {
-    window.addEventListener('load', () => {
-      preloader.remove();
-    });
-  }
-
-  /**
-   * 6. Scroll Top Button
-   */
-  let scrollTop = document.querySelector('.scroll-top');
+  const scrollTop = document.querySelector('.scroll-top');
 
   function toggleScrollTop() {
     if (scrollTop) {
       window.scrollY > 100 ? scrollTop.classList.add('active') : scrollTop.classList.remove('active');
     }
   }
-  
+
   if (scrollTop) {
     scrollTop.addEventListener('click', (e) => {
       e.preventDefault();
@@ -92,12 +69,11 @@
   }
 
   window.addEventListener('load', toggleScrollTop);
-  document.addEventListener('scroll', toggleScrollTop);
+  document.addEventListener('scroll', toggleScrollTop, onScrollOptions);
 
-  /**
-   * 7. Inicializa AOS (Animações de entrada)
-   */
   function aosInit() {
+    if (typeof AOS === 'undefined') return;
+
     AOS.init({
       duration: 600,
       easing: 'ease-in-out',
@@ -107,26 +83,28 @@
   }
   window.addEventListener('load', aosInit);
 
-  /**
-   * 8. Inicializa GLightbox e PureCounter
-   */
-  const glightbox = GLightbox({
-    selector: '.glightbox'
-  });
+  if (typeof GLightbox !== 'undefined' && document.querySelector('.glightbox')) {
+    GLightbox({
+      selector: '.glightbox'
+    });
+  }
 
-  new PureCounter();
+  if (typeof PureCounter !== 'undefined' && document.querySelector('[data-purecounter-start]')) {
+    new PureCounter();
+  }
 
-  /**
-   * 9. Isotope Layout (Filtros)
-   */
   document.querySelectorAll('.isotope-layout').forEach(function(isotopeItem) {
-    let layout = isotopeItem.getAttribute('data-layout') ?? 'masonry';
-    let filter = isotopeItem.getAttribute('data-default-filter') ?? '*';
-    let sort = isotopeItem.getAttribute('data-sort') ?? 'original-order';
+    if (typeof Isotope === 'undefined' || typeof imagesLoaded === 'undefined') return;
+
+    const layout = isotopeItem.getAttribute('data-layout') ?? 'masonry';
+    const filter = isotopeItem.getAttribute('data-default-filter') ?? '*';
+    const sort = isotopeItem.getAttribute('data-sort') ?? 'original-order';
+    const container = isotopeItem.querySelector('.isotope-container');
+    if (!container) return;
 
     let initIsotope;
-    imagesLoaded(isotopeItem.querySelector('.isotope-container'), function() {
-      initIsotope = new Isotope(isotopeItem.querySelector('.isotope-container'), {
+    imagesLoaded(container, function() {
+      initIsotope = new Isotope(container, {
         itemSelector: '.isotope-item',
         layoutMode: layout,
         filter: filter,
@@ -136,69 +114,63 @@
 
     isotopeItem.querySelectorAll('.isotope-filters li').forEach(function(filters) {
       filters.addEventListener('click', function() {
-        isotopeItem.querySelector('.isotope-filters .filter-active').classList.remove('filter-active');
+        const activeFilter = isotopeItem.querySelector('.isotope-filters .filter-active');
+        if (activeFilter) activeFilter.classList.remove('filter-active');
+
         this.classList.add('filter-active');
-        initIsotope.arrange({
-          filter: this.getAttribute('data-filter')
-        });
-        if (typeof aosInit === 'function') {
-          aosInit();
+        if (initIsotope) {
+          initIsotope.arrange({
+            filter: this.getAttribute('data-filter')
+          });
         }
+        aosInit();
       }, false);
     });
-
   });
 
-  /**
-   * 10. Swiper Sliders
-   */
   function initSwiper() {
-    document.querySelectorAll(".init-swiper").forEach(function(swiperElement) {
-      let config = JSON.parse(
-        swiperElement.querySelector(".swiper-config").innerHTML.trim()
-      );
+    if (typeof Swiper === 'undefined') return;
 
-      if (swiperElement.classList.contains("swiper-tab")) {
+    document.querySelectorAll('.init-swiper').forEach(function(swiperElement) {
+      const configElement = swiperElement.querySelector('.swiper-config');
+      if (!configElement) return;
+
+      const config = JSON.parse(configElement.innerHTML.trim());
+
+      if (swiperElement.classList.contains('swiper-tab') && typeof initSwiperWithCustomPagination === 'function') {
         initSwiperWithCustomPagination(swiperElement, config);
       } else {
         new Swiper(swiperElement, config);
       }
     });
   }
-  window.addEventListener("load", initSwiper);
+  window.addEventListener('load', initSwiper);
 
-  /**
-   * 11. FAQ Toggle
-   */
   document.querySelectorAll('.faq-item h3, .faq-item .faq-toggle').forEach((faqItem) => {
     faqItem.addEventListener('click', () => {
       faqItem.parentNode.classList.toggle('faq-active');
     });
   });
 
-  /**
-   * 12. Navmenu Scrollspy (Destaca o link ativo no menu enquanto rola)
-   */
-  let navmenulinks = document.querySelectorAll('.navmenu a');
+  const navmenulinks = document.querySelectorAll('.navmenu a');
 
   function navmenuScrollspy() {
     navmenulinks.forEach(navmenulink => {
       if (!navmenulink.hash) return;
-      let section = document.querySelector(navmenulink.hash);
+      const section = document.querySelector(navmenulink.hash);
       if (!section) return;
-      
-      // Ajuste de posição para considerar o header fixo
-      let position = window.scrollY + 200;
-      
+
+      const position = window.scrollY + 200;
+
       if (position >= section.offsetTop && position <= (section.offsetTop + section.offsetHeight)) {
         document.querySelectorAll('.navmenu a.active').forEach(link => link.classList.remove('active'));
         navmenulink.classList.add('active');
       } else {
         navmenulink.classList.remove('active');
       }
-    })
+    });
   }
   window.addEventListener('load', navmenuScrollspy);
-  document.addEventListener('scroll', navmenuScrollspy);
+  document.addEventListener('scroll', navmenuScrollspy, onScrollOptions);
 
 })();
