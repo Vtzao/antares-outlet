@@ -10,33 +10,72 @@
   "use strict";
 
   const onScrollOptions = { passive: true };
+  const selectBody = document.body;
+  const selectHeader = document.querySelector('#header');
+  const scrollTop = document.querySelector('.scroll-top');
+  const mobileNavToggleBtn = document.querySelector('.mobile-nav-toggle');
+  const mobileNavToggleIcon = mobileNavToggleBtn ? mobileNavToggleBtn.querySelector('i') : null;
+  let isGlobalScrollTicking = false;
 
   function toggleScrolled() {
-    const selectBody = document.querySelector('body');
-    const selectHeader = document.querySelector('#header');
+    if (!selectHeader) return;
     if (!selectHeader.classList.contains('scroll-up-sticky') && !selectHeader.classList.contains('sticky-top') && !selectHeader.classList.contains('fixed-top')) return;
     window.scrollY > 100 ? selectBody.classList.add('scrolled') : selectBody.classList.remove('scrolled');
   }
 
-  document.addEventListener('scroll', toggleScrolled, onScrollOptions);
-  window.addEventListener('load', toggleScrolled);
+  function toggleScrollTop() {
+    if (!scrollTop) return;
+    window.scrollY > 100 ? scrollTop.classList.add('active') : scrollTop.classList.remove('active');
+  }
 
-  const mobileNavToggleBtn = document.querySelector('.mobile-nav-toggle');
+  function runGlobalScrollEffects() {
+    toggleScrolled();
+    toggleScrollTop();
+  }
+
+  function onGlobalScroll() {
+    if (isGlobalScrollTicking) return;
+
+    isGlobalScrollTicking = true;
+    window.requestAnimationFrame(() => {
+      runGlobalScrollEffects();
+      isGlobalScrollTicking = false;
+    });
+  }
+
+  function setMobileNavState(isActive) {
+    selectBody.classList.toggle('mobile-nav-active', isActive);
+
+    if (mobileNavToggleBtn) {
+      mobileNavToggleBtn.setAttribute('aria-expanded', String(isActive));
+      mobileNavToggleBtn.setAttribute('aria-label', isActive ? 'Fechar menu de navegação' : 'Abrir menu de navegação');
+    }
+
+    if (mobileNavToggleIcon) {
+      mobileNavToggleIcon.classList.toggle('bi-list', !isActive);
+      mobileNavToggleIcon.classList.toggle('bi-x', isActive);
+    }
+  }
 
   function mobileNavToogle() {
-    document.querySelector('body').classList.toggle('mobile-nav-active');
-    mobileNavToggleBtn.classList.toggle('bi-list');
-    mobileNavToggleBtn.classList.toggle('bi-x');
+    const isActive = !selectBody.classList.contains('mobile-nav-active');
+    setMobileNavState(isActive);
   }
 
   if (mobileNavToggleBtn) {
     mobileNavToggleBtn.addEventListener('click', mobileNavToogle);
   }
 
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && selectBody.classList.contains('mobile-nav-active')) {
+      setMobileNavState(false);
+    }
+  });
+
   document.querySelectorAll('#navmenu a').forEach(navmenu => {
     navmenu.addEventListener('click', () => {
-      if (document.querySelector('.mobile-nav-active')) {
-        mobileNavToogle();
+      if (selectBody.classList.contains('mobile-nav-active')) {
+        setMobileNavState(false);
       }
     });
   });
@@ -50,14 +89,6 @@
     });
   });
 
-  const scrollTop = document.querySelector('.scroll-top');
-
-  function toggleScrollTop() {
-    if (scrollTop) {
-      window.scrollY > 100 ? scrollTop.classList.add('active') : scrollTop.classList.remove('active');
-    }
-  }
-
   if (scrollTop) {
     scrollTop.addEventListener('click', (e) => {
       e.preventDefault();
@@ -68,8 +99,8 @@
     });
   }
 
-  window.addEventListener('load', toggleScrollTop);
-  document.addEventListener('scroll', toggleScrollTop, onScrollOptions);
+  window.addEventListener('load', runGlobalScrollEffects);
+  document.addEventListener('scroll', onGlobalScroll, onScrollOptions);
 
   let swiperAssetsPromise;
 
@@ -148,6 +179,22 @@
     }
   }
   initTestimonialsWhenVisible();
+
+  function initWhatsAppCtaTracking() {
+    document.querySelectorAll('.js-whatsapp-cta[data-cta="whatsapp-group"]').forEach((cta) => {
+      cta.addEventListener('click', () => {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({
+          event: 'whatsapp_group_click',
+          cta_location: cta.dataset.ctaLocation || 'unknown',
+          cta_text: cta.textContent.trim().replace(/\s+/g, ' '),
+          page_path: window.location.pathname,
+          page_title: document.title
+        });
+      });
+    });
+  }
+  initWhatsAppCtaTracking();
 
   document.querySelectorAll('.faq-item h3, .faq-item .faq-toggle').forEach((faqItem) => {
     faqItem.addEventListener('click', () => {
