@@ -155,25 +155,71 @@
     });
   });
 
-  const navmenulinks = document.querySelectorAll('.navmenu a');
+  const navmenulinks = Array.from(document.querySelectorAll('.navmenu a'));
+  let navmenuSections = [];
+  let activeNavLink = null;
+  let isScrollspyTicking = false;
+
+  function buildNavmenuSections() {
+    navmenuSections = navmenulinks
+      .map((navmenulink) => {
+        if (!navmenulink.hash) return null;
+
+        const section = document.querySelector(navmenulink.hash);
+        if (!section) return null;
+
+        const sectionTop = section.getBoundingClientRect().top + window.scrollY;
+        const sectionBottom = sectionTop + section.offsetHeight;
+
+        return {
+          link: navmenulink,
+          top: sectionTop,
+          bottom: sectionBottom
+        };
+      })
+      .filter(Boolean);
+  }
 
   function navmenuScrollspy() {
-    navmenulinks.forEach(navmenulink => {
-      if (!navmenulink.hash) return;
-      const section = document.querySelector(navmenulink.hash);
-      if (!section) return;
+    const position = window.scrollY + 200;
+    let nextActiveLink = null;
 
-      const position = window.scrollY + 200;
-
-      if (position >= section.offsetTop && position <= (section.offsetTop + section.offsetHeight)) {
-        document.querySelectorAll('.navmenu a.active').forEach(link => link.classList.remove('active'));
-        navmenulink.classList.add('active');
-      } else {
-        navmenulink.classList.remove('active');
+    for (const sectionInfo of navmenuSections) {
+      if (position >= sectionInfo.top && position <= sectionInfo.bottom) {
+        nextActiveLink = sectionInfo.link;
+        break;
       }
+    }
+
+    if (nextActiveLink === activeNavLink) return;
+
+    if (activeNavLink) {
+      activeNavLink.classList.remove('active');
+    }
+
+    if (nextActiveLink) {
+      nextActiveLink.classList.add('active');
+    }
+
+    activeNavLink = nextActiveLink;
+  }
+
+  function onScrollSpy() {
+    if (isScrollspyTicking) return;
+
+    isScrollspyTicking = true;
+    window.requestAnimationFrame(() => {
+      navmenuScrollspy();
+      isScrollspyTicking = false;
     });
   }
-  window.addEventListener('load', navmenuScrollspy);
-  document.addEventListener('scroll', navmenuScrollspy, onScrollOptions);
+
+  window.addEventListener('load', () => {
+    buildNavmenuSections();
+    navmenuScrollspy();
+  });
+  window.addEventListener('resize', buildNavmenuSections, onScrollOptions);
+  window.addEventListener('orientationchange', buildNavmenuSections);
+  document.addEventListener('scroll', onScrollSpy, onScrollOptions);
 
 })();

@@ -67,6 +67,15 @@ body {
   font-family: var(--default-font);
 }
 
+i.bi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.1em;
+  min-width: 1.1em;
+  line-height: 1;
+}
+
 a {
   color: var(--accent-color);
   text-decoration: none;
@@ -235,8 +244,15 @@ h6 {
   line-height: 1;
 }
 
+.header .logo picture {
+  display: block;
+}
+
 .header .logo img {
   max-height: 32px;
+  width: auto;
+  height: auto;
+  display: block;
   margin-right: 8px;
 }
 
@@ -768,6 +784,14 @@ section,
   font-weight: 600;
 }
 
+.hero .hero-cta {
+  justify-content: flex-start;
+}
+
+.hero .hero-cta .btn-watch-video {
+  margin-left: 0;
+}
+
 .hero .btn-watch-video i {
   color: var(--accent-color);
   font-size: 32px;
@@ -799,6 +823,24 @@ section,
   .hero .btn-get-started,
   .hero .btn-watch-video {
     font-size: 13px;
+  }
+
+  .hero .hero-cta {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .hero .hero-cta .btn-whatsapp-special {
+    font-size: 17px;
+    min-height: 56px;
+    padding: 14px 28px;
+    width: min(100%, 360px);
+    justify-content: center;
+  }
+
+  .hero .hero-cta .btn-watch-video {
+    font-size: 15px;
+    min-height: 48px;
   }
 }
 
@@ -1387,6 +1429,37 @@ section,
 
 .testimonials .swiper-pagination .swiper-pagination-bullet-active {
   background-color: var(--accent-color);
+}
+
+@media (max-width: 991.98px) {
+  .testimonials .testimonial-item .row>.col-lg-2 {
+    order: 1;
+  }
+
+  .testimonials .testimonial-item .row>.col-lg-6 {
+    order: 2;
+  }
+
+  .testimonials .testimonial-item .testimonial-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .testimonials .testimonial-item .testimonial-content h3 {
+    order: 1;
+  }
+
+  .testimonials .testimonial-item .testimonial-content h4 {
+    order: 2;
+  }
+
+  .testimonials .testimonial-item .testimonial-content .stars {
+    order: 3;
+  }
+
+  .testimonials .testimonial-item .testimonial-content p {
+    order: 4;
+  }
 }
 
 /*--------------------------------------------------------------
